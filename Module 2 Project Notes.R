@@ -30,6 +30,7 @@ pseed2 <- pseed2%>%
 pseed2 <- pseed2%>%
   mutate(bl.s=cm.s/bl)%>%
   print()
+#Last save of pseed2 before pivot
 
 #plotting specific speed by relative amplitude
 pseed2%>%
