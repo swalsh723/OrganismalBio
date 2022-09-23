@@ -91,4 +91,5 @@ AIC(spec.lm1,spec.lm3) #AIC=2k-2ln(L)
 #k=Number of model parameters, L=L(theta)=max value of the likelihood function of the model
 
 
+#9/22
 
