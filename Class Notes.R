@@ -92,4 +92,10 @@ AIC(spec.lm1,spec.lm3) #AIC=2k-2ln(L)
 
 
 #9/22
+#Brownian motion = High Energy motion (Wobble)
 
+#Phylogenetic Least Squares
+
+#PGLS under BM
+gls(y~x, correlation = corBrownian(1,phy = tree, form = ~Species),data=dat,method
+    = "ML")
