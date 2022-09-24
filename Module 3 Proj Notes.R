@@ -47,11 +47,12 @@ anole.allo <- nls(HTotal~a*SVL^b, start=list(b=1, a=1),data=anole2)
 summary(anole.allo)
 
 #AICc from the MuMIn package
-anole.aic <- AICc(anole.allo)
+anole.aic <- AICc(anole.lm,anole.allo)
 
 #ERROR IN THIS FUNCTION
 #aicw from the geiger package
 anole.aicw <- aicw(anole.aic$AICc)
+print(anole.aicw)
 
 #More Complex Visualizations and Models
 anole.log%>%
@@ -61,3 +62,53 @@ anole.log.eco.lm <- lm(HTotal~SVL*Ecomorph2,anole.log)
 summary(anole.log.eco.lm)
 
 anova(anole.log.eco.lm)
+
+anole.log.lm <- lm(HTotal~SVL,anole.log)
+anova(anole.log.lm)
+
+anole.log.aic <- AICc(anole.log.lm,anole.log.eco.lm)
+aicw(anole.log.aic$AICc)
+
+anole.log <- anole.log%>%
+  mutate(res=residuals(anole.log.lm))
+
+anole.log%>%
+  ggplot(aes(Ecomorph2,res))+geom_point()
+
+p.eco <- anole.log%>%
+  ggplot(aes(x=Ecomorph2,y=res))+geom_boxplot()
+print(p.eco)
+
+p.eco+ geom_boxplot() +stat_summary(fun=mean, geom="point", size=3)
+
+anole.tree <- read.tree("anole.tre")
+plot(anole.tree,cex=0.4)
+
+#PGLS under BM, no ecomorph
+pgls.BM1 <- gls(HTotal ~SVL, correlation = corBrownian(1,phy = anole.tree,form=~Species),data = anole.log, method = "ML")
+
+#PGLS under BM, w ecomorph
+pgls.BM2 <- gls(HTotal~SVL*Ecomorph2, correlation = corBrownian(1,phy = anole.tree,form = ~Species),data = anole.log,method = "ML")
+
+#PGLS under OU, no ecomorph
+pgls.OU1 <- gls(HTotal~SVL, correlation = corMartins(0,phy = anole.tree,form = ~Species),data = anole.log,method="ML")
+
+#PGLS under OU, w ecomorph
+pgls.OU2 <- gls(HTotal ~SVL * Ecomorph2, correlation = corMartins(0,phy = anole.tree,form=~Species),data = anole.log, method = "ML")
+
+anole.phylo.aic <- AICc(pgls.BM1,pgls.BM2,pgls.OU1,pgls.OU2)
+aicw(anole.phylo.aic$AICc)
+
+anova(pgls.BM2)
+
+anole.log <- anole.log%>%
+  mutate(phylo.res=residuals(pgls.BM2))
+p.eco.phylo <- anole.log%>%
+  ggplot(aes(x=Ecomorph2,y=phylo.res))+geom_boxplot()+stat_summary(fun=mean,geom="point",size=3)
+print(p.eco.phylo)
+
+anole.log%>%
+  dplyr::select(Ecomorph2,res,phylo.res)%>%
+  pivot_longer(cols=c("res","phylo.res"))%>%
+  print%>%
+  ggplot(aes(x=Ecomorph2,y=value))+geom_boxplot()+stat_summary(fun=mean,geom="point",size=3)+facet_grid(name~., scales ="free_y")+ylab("residual")
