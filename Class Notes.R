@@ -99,3 +99,24 @@ AIC(spec.lm1,spec.lm3) #AIC=2k-2ln(L)
 #PGLS under BM
 gls(y~x, correlation = corBrownian(1,phy = tree, form = ~Species),data=dat,method
     = "ML")
+
+
+#9/26
+
+#For question 3 plot PH.res or ArbPD.res against EcoMorph2
+
+#For question 6
+#Focus on predictions of the models
+
+#Things to Do for Project 3: Fix question 3 models to include Ecomorph2, create 
+#plot for question 6, Do we need to include Ecomorph in the linear Models?
+
+
+#9/28
+#Making Messes Pretty: R Markdown
+
+#In R Mark down (##) make the headings, the more # the less large the header will be
+# (**WORD**)-> leads to bold, (*WORD*)-> leads to italicize
+# ![]-> insert a figure :* at the end, in between put the image adress
+# !-> break from markdown code and use html code
+# []-> brackets are a space for the image name, which would be put in place instead of the image if the image doesn't load
