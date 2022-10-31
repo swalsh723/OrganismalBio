@@ -213,4 +213,63 @@ nodelabels(node = as.numeric(rownames(hindPC1.SS$single.clades)),text = rownames
 hindPC1.plot <- plotShift(RR=hindPC1.RR,SS=hindPC1.SS)
 hindPC1.plot$plotClades()
 
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
 
+
+library(ggtree)
+library(wesanderson)
+library(ggplot2)
+
+plot_SS <- function(tre=NULL,SS=NULL,taxon.names=NULL){
+  
+  pal <- wes_palette("BottleRocket1",n=length(SS$single.clades))
+  
+  nodes <- as.numeric(rownames(SS$single.clades))
+  sp <- list()
+  for(i in nodes){
+    sp[[paste0(i)]] <- tibble(nodes=i,species=extract.clade(tre,i)$tip.label)
+  }
+  
+  col.pal <- tibble(nodes=nodes,col=pal)
+  d <- do.call(rbind,sp) %>% left_join(taxon.names) %>% left_join(col.pal)%>% 
+    rename(label=species) 
+  
+  d2<- d %>% rename(clade=higher_taxon) 
+  
+  p <- ggtree(tre) + xlim(NA, 8)+ scale_y_reverse()
+  
+  p$data <- p$data %>% left_join(d) %>% left_join(tibble(node=nodes,SS$single.clades) %>% mutate(shift=ifelse(rate.difference>0,"+","-")))
+  
+  p <-  p+geom_tiplab(aes(col=higher_taxon),geom="text")+
+    geom_cladelab(data=d2,mapping=aes(node=nodes,col=clade,label=clade),offset=2.5)+
+    geom_hilight(d2,mapping = aes(node = nodes,fill=clade),alpha = 0.02)+geom_nodepoint(mapping=aes(subset = shift =="-"), size=5, shape=25,fill='blue',color='blue',alpha=0.7)+
+    geom_nodepoint(mapping=aes(subset = shift =="+"), size=5, shape=24, fill='red',color='red',alpha=0.7)+
+    scale_fill_manual(values = pal)+
+    scale_color_manual(values = pal)+
+    theme(legend.position = "none")
+  
+  res <- tibble(nodes=nodes,SS$single.clades) %>% left_join(d %>% select(nodes,higher_taxon) %>% unique)
+  
+  return(list(plot=p,res=res))
+  
+}
+
+hindPC1.res <- plot_SS(lep.tree2,hindPC1.SS,hindwing.pca2)
+#hindPC1.res$plot (error)
+
+hindPC1.res$res
+
+#Shape Evolution Correlation
+hindPC1.pic <- pic(hind.pc1,phy = lep.tree2)
+forePC1.pic <- pic(fore.pc1,phy = lep.tree2)
+
+PC1.pic <- tibble(
+  hind=hindPC1.pic,
+  fore=forePC1.pic
+)
+
+#PC1.pic %>% 
+  #ggplot(aes(x=fore,y=hind))+geom_point()+geom_smooth(method="lm") (ERROR)
+
+summary(lm(hind~fore,PC1.pic))
