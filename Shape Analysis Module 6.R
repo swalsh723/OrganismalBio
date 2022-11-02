@@ -1,5 +1,6 @@
 library(tidyverse)
 library(Momocs)
+library(vroom)
 
 f <- list.files("lep_examples",pattern=".txt",full.names = TRUE)
 
